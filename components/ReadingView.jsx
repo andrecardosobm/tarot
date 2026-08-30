@@ -8,6 +8,7 @@ import { synthesize } from '../lib/synthesis';
 import { encodeReading } from '../lib/share';
 import { readingToPng, downloadDataUrl } from '../lib/exportImage';
 import { saveReading } from '../lib/storage';
+import { absoluteUrl } from '../lib/paths';
 
 /** Painel de revelação, interpretação e síntese de uma tiragem. */
 export default function ReadingView({ reading, onRestart, readOnly = false }) {
@@ -36,7 +37,7 @@ export default function ReadingView({ reading, onRestart, readOnly = false }) {
   };
 
   const handleShare = async () => {
-    const url = `${window.location.origin}/tiragem?t=${encodeReading(reading)}`;
+    const url = absoluteUrl(`/tiragem/?t=${encodeReading(reading)}`);
     try {
       if (navigator.share) {
         await navigator.share({ title: 'Minha tiragem de Tarot', url });
