@@ -44,7 +44,7 @@ export default function JournalList() {
               </div>
               <div className="flex gap-2">
                 <Link
-                  href={`/tiragem?t=${encodeReading(r)}`}
+                  href={`/tiragem/?t=${encodeReading(r)}`}
                   className="rounded-full border border-white/20 px-4 py-1.5 text-xs hover:bg-white/10"
                 >
                   Abrir

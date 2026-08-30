@@ -65,6 +65,32 @@ npm run dev     # http://localhost:3000
 npm run build && npm start
 ```
 
+## Publicação no GitHub Pages
+
+O site é exportado como estático (`output: 'export'`) e publicado pelo workflow
+`.github/workflows/deploy.yml` a cada push em `main`.
+
+Para ativar, uma única vez: **Settings → Pages → Source: GitHub Actions**. O endereço
+final é `https://<owner>.github.io/<repo>/`.
+
+Detalhes que fazem funcionar em subdiretório:
+
+- `NEXT_PUBLIC_BASE_PATH` é definido no CI como `/<repo>` (ou vazio, se o repositório for
+  `<owner>.github.io`) e alimenta `basePath`/`assetPrefix`
+- `trailingSlash: true`, para que cada rota vire `pasta/index.html`
+- `out/.nojekyll`, sem o qual o Jekyll do Pages descartaria o diretório `_next`
+- URLs montadas à mão (o link de compartilhamento) passam por `lib/paths.js`, que
+  aplica o mesmo prefixo — os `<Link>` do Next já o aplicam sozinhos
+
+Para reproduzir o build de produção localmente:
+
+```bash
+NEXT_PUBLIC_BASE_PATH=/tarot npm run build   # gera ./out
+```
+
+Como não há backend, tudo (diário, exportações e link compartilhável) continua
+funcionando no Pages.
+
 ## Assets visuais
 
 As lâminas são renderizadas de forma tipográfica/vetorial em `components/CardArt.jsx`
