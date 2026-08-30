@@ -34,6 +34,21 @@ embaralha a mesa e puxa manualmente as cartas.
 - Síntese da tiragem gerada a partir da composição real das cartas (proporção de Arcanos
   Maiores, naipe dominante, cartas invertidas, arco da primeira à última carta e tema)
 
+**Leitura por IA (opcional)**
+- Interpretação da tiragem por um modelo Claude (`claude-opus-5`) via SDK oficial da Anthropic,
+  em streaming, lendo as cartas em conjunto com a pergunta e as posições
+- O prompt entrega ao modelo os dados canônicos de cada carta (posição, orientação, luz,
+  sombra, conselho), para a leitura ficar ancorada no baralho e não em invenção livre
+- Três tons de leitura e limites explícitos no system prompt (sem diagnóstico médico,
+  jurídico ou financeiro; encaminhamento ao CVV em caso de risco)
+- A síntese determinística continua sendo o padrão; a IA é um complemento e, se falhar
+  ou não estiver configurada, nada na aplicação para de funcionar
+- Dois modos de credencial — ver `proxy/README.md`:
+  1. **chave do próprio usuário** (padrão no Pages), guardada só no `localStorage` do
+     navegador e enviada direto para `api.anthropic.com`
+  2. **proxy próprio** (recomendado para uso público): defina `NEXT_PUBLIC_AI_PROXY_URL`
+     e a chave nunca chega ao navegador
+
 **Gestão e compartilhamento**
 - Diário de tiragens em `localStorage` (`/diario`)
 - Exportação em PNG (desenhado em `<canvas>`) e em PDF (via impressão, com estilo de print)
@@ -54,6 +69,9 @@ lib/random.js   Fisher-Yates + corte com aleatoriedade criptográfica
 lib/synthesis.js  gerador da síntese da leitura
 lib/share.js    codificação/decodificação da tiragem na URL
 lib/storage.js  diário em localStorage
+lib/ai.js       prompt, streaming e erros da leitura por IA
+lib/aiSettings.js  preferências de IA (chave, tom) em localStorage
+proxy/          worker opcional que guarda a chave no servidor
 lib/exportImage.js  render da tiragem em PNG
 ```
 
