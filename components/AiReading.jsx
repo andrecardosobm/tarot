@@ -36,6 +36,7 @@ export default function AiReading({ reading, onText }) {
     try {
       const final = await streamReading(reading, {
         apiKey: settings.apiKey,
+        model: settings.model,
         tone: settings.tone,
         signal: controller.signal,
         onText: (chunk) => {
@@ -79,7 +80,7 @@ export default function AiReading({ reading, onText }) {
         <p className="text-sm text-white/60">
           {PROXY_URL
             ? 'Ative a leitura por IA em Ajustes.'
-            : 'Esta é uma aplicação sem servidor: para usar a IA, informe sua própria chave da API da Anthropic em Ajustes. Ela fica guardada só no seu navegador.'}
+            : 'Esta é uma aplicação sem servidor: para usar a IA, informe sua própria chave da API Gemini em Ajustes. Ela fica guardada só no seu navegador.'}
         </p>
       )}
 

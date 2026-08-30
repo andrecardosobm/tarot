@@ -1,30 +1,31 @@
 /**
- * Proxy mínimo para a API da Anthropic (Cloudflare Workers).
+ * Proxy mínimo para a API Gemini (Cloudflare Workers).
  *
  * Serve para publicar a leitura por IA sem que a chave chegue ao navegador:
  * o site chama este endpoint, ele injeta a credencial e repassa a resposta
- * (inclusive o streaming SSE).
+ * (inclusive o streaming).
  *
  * Publicar:
- *   npx wrangler deploy proxy/anthropic-proxy.mjs --name tarot-proxy
- *   npx wrangler secret put ANTHROPIC_API_KEY
+ *   npx wrangler deploy proxy/gemini-proxy.mjs --name tarot-proxy
+ *   npx wrangler secret put GEMINI_API_KEY
  *   npx wrangler secret put ALLOWED_ORIGIN   # ex.: https://andrecardosobm.github.io
  *
- * Depois, no build do site: NEXT_PUBLIC_AI_PROXY_URL=https://tarot-proxy.<seu>.workers.dev/v1
+ * Depois, no build do site: NEXT_PUBLIC_AI_PROXY_URL=https://tarot-proxy.<seu>.workers.dev
+ * (o SDK acrescenta /v1beta/... ao caminho por conta própria).
  *
  * Sem autenticação própria, qualquer pessoa que descubra a URL gasta a sua
- * cota — mantenha um limite de gasto na conta Anthropic e considere adicionar
- * rate limiting (Cloudflare Rate Limiting Rules) ou um token de acesso.
+ * cota — considere rate limiting (Cloudflare Rate Limiting Rules) ou um token
+ * de acesso, e acompanhe o consumo no Google AI Studio.
  */
 
-const ALLOWED_PATHS = new Set(['/v1/messages']);
+const UPSTREAM = 'https://generativelanguage.googleapis.com';
 
 export default {
   async fetch(request, env) {
     const origin = env.ALLOWED_ORIGIN || '*';
     const cors = {
       'Access-Control-Allow-Origin': origin,
-      'Access-Control-Allow-Headers': 'content-type, anthropic-version, anthropic-beta',
+      'Access-Control-Allow-Headers': 'content-type, x-goog-api-key, x-goog-api-client',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Max-Age': '86400',
     };
@@ -33,16 +34,16 @@ export default {
     if (request.method !== 'POST') return new Response('Método não permitido', { status: 405, headers: cors });
 
     const url = new URL(request.url);
-    if (!ALLOWED_PATHS.has(url.pathname)) {
+    // Só geração de conteúdo; nada de gerenciamento de arquivos ou de modelos.
+    if (!/^\/v1(beta)?\/models\/[^/]+:(streamGenerateContent|generateContent)$/.test(url.pathname)) {
       return new Response('Rota não permitida', { status: 404, headers: cors });
     }
 
-    const upstream = await fetch('https://api.anthropic.com/v1/messages', {
+    const upstream = await fetch(`${UPSTREAM}${url.pathname}${url.search}`, {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'anthropic-version': request.headers.get('anthropic-version') || '2023-06-01',
-        'x-api-key': env.ANTHROPIC_API_KEY,
+        'x-goog-api-key': env.GEMINI_API_KEY,
       },
       body: request.body,
       // necessário para repassar o corpo em streaming no Workers
