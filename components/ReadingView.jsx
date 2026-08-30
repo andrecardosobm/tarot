@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
 import TarotCard from './TarotCard';
 import { CARDS_BY_ID } from '../lib/deck';
 import { getSpread, positionsFor, THEMES } from '../lib/spreads';
@@ -10,6 +11,9 @@ import { readingToPng, downloadDataUrl } from '../lib/exportImage';
 import { saveReading } from '../lib/storage';
 import { absoluteUrl } from '../lib/paths';
 
+// O SDK da Anthropic só é baixado quando a leitura chega ao painel de IA.
+const AiReading = dynamic(() => import('./AiReading'), { ssr: false });
+
 /** Painel de revelação, interpretação e síntese de uma tiragem. */
 export default function ReadingView({ reading, onRestart, readOnly = false }) {
   const spread = getSpread(reading.spreadId);
@@ -17,6 +21,7 @@ export default function ReadingView({ reading, onRestart, readOnly = false }) {
   const [revealed, setRevealed] = useState(() => (readOnly ? reading.draw.map(() => true) : reading.draw.map(() => false)));
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(null);
+  const [aiText, setAiText] = useState(reading.aiReading || '');
 
   const allRevealed = revealed.every(Boolean);
   const synthesis = useMemo(
@@ -27,13 +32,18 @@ export default function ReadingView({ reading, onRestart, readOnly = false }) {
   const reveal = (i) =>
     setRevealed((prev) => prev.map((v, idx) => (idx === i ? true : v)));
 
+  useEffect(() => {
+    if (aiText) setSaved(false);
+  }, [aiText]);
+
   const handleSave = () => {
-    saveReading({ ...reading, synthesis });
+    saveReading({ ...reading, synthesis, aiReading: aiText });
     setSaved(true);
   };
 
   const handlePng = () => {
-    downloadDataUrl(readingToPng(reading, positions, synthesis), `tiragem-${reading.date.slice(0, 10)}.png`);
+    const resumo = aiText ? `${synthesis}\n\nLeitura interpretada: ${aiText}` : synthesis;
+    downloadDataUrl(readingToPng(reading, positions, resumo), `tiragem-${reading.date.slice(0, 10)}.png`);
   };
 
   const handleShare = async () => {
@@ -144,6 +154,8 @@ export default function ReadingView({ reading, onRestart, readOnly = false }) {
           <p className="text-sm leading-relaxed text-white/85">{synthesis}</p>
         </div>
       )}
+
+      {allRevealed && <AiReading reading={reading} onText={setAiText} />}
 
       <div className="no-print flex flex-wrap gap-3 pt-2">
         {!readOnly && (
