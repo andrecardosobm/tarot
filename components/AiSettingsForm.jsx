@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { loadAiSettings, saveAiSettings, TONES, PROXY_URL, DEFAULTS } from '../lib/aiSettings';
-import { MODELS, testConnection, describeAiError } from '../lib/ai';
+import { MODELS, testConnection, listModels, describeAiError } from '../lib/ai';
 
 export default function AiSettingsForm() {
   const [settings, setSettings] = useState(null);
   const [saved, setSaved] = useState(false);
   const [test, setTest] = useState(null); // {status, message}
+  const [available, setAvailable] = useState(null); // modelos reais da chave
 
   useEffect(() => {
     setSettings(loadAiSettings());
@@ -31,6 +32,17 @@ export default function AiSettingsForm() {
     setSettings(DEFAULTS);
     setSaved(true);
     setTest(null);
+  };
+
+  const fetchModels = async () => {
+    setTest({ status: 'running', message: 'Buscando os modelos da sua chave…' });
+    try {
+      const list = await listModels({ apiKey: settings.apiKey });
+      setAvailable(list);
+      setTest({ status: 'ok', message: `${list.length} modelos disponíveis para esta chave.` });
+    } catch (err) {
+      setTest({ status: 'error', message: describeAiError(err) });
+    }
   };
 
   const runTest = async () => {
@@ -124,15 +136,31 @@ export default function AiSettingsForm() {
           onChange={(e) => update({ model: e.target.value })}
           className="w-full rounded-xl border border-white/15 bg-white/[0.04] p-3 text-sm outline-none focus:border-gold/60"
         >
-          {MODELS.map((m) => (
+          {(available || MODELS).map((m) => (
             <option key={m.id} value={m.id} className="bg-veil">
-              {m.label} — {m.hint}
+              {m.label}
+              {m.hint ? ` — ${m.hint}` : ''}
             </option>
           ))}
+          {available && !available.some((m) => m.id === settings.model) && (
+            <option value={settings.model} className="bg-veil">
+              {settings.model} (não listado para esta chave)
+            </option>
+          )}
         </select>
-        <p className="text-xs text-white/40">
-          Nem toda chave tem acesso a todos os modelos. Use o teste abaixo para confirmar.
-        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={fetchModels}
+            disabled={!canTest || test?.status === 'running'}
+            className="rounded-full border border-white/20 px-4 py-1.5 text-xs hover:bg-white/10 disabled:opacity-40"
+          >
+            Buscar modelos desta chave
+          </button>
+          <p className="text-xs text-white/40">
+            A disponibilidade muda por conta e com o tempo. Confirme com o teste de conexão.
+          </p>
+        </div>
       </div>
 
       <div className="space-y-2">
