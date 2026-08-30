@@ -1,0 +1,80 @@
+# Oráculo — Plataforma de Tiragens de Tarot
+
+Aplicação web de consultas de Tarot com o baralho tradicional completo de **78 arcanos**
+(22 Maiores + 56 Menores). O usuário registra sua intenção, escolhe o método de tiragem,
+embaralha a mesa e puxa manualmente as cartas.
+
+## Stack
+
+- **Next.js 16** (App Router, Server + Client Components)
+- **React 19**
+- **Tailwind CSS 3**
+- Animações de virada em CSS 3D puro (sem dependência extra), com respeito a
+  `prefers-reduced-motion`
+- Persistência local via `localStorage` (sem backend)
+
+## Funcionalidades
+
+**Configuração da consulta**
+- Campo de pergunta/intenção (opcional) e tema: Geral, Amor, Trabalho, Espiritualidade
+- Métodos: Carta do Dia (1), Três Cartas — Tempo, Três Cartas — Conselho,
+  Cruz Céltica (10) e Tiragem Livre (1 a 10 cartas)
+- Toggle de cartas invertidas (a inversão é sorteada no momento em que a carta é puxada)
+
+**Mesa virtual**
+- As 78 cartas em grade rolável, viradas para baixo
+- Embaralhamento Fisher-Yates com `crypto.getRandomValues` (com rejeição de módulo para
+  evitar viés) e corte do baralho, com animação
+- Seleção manual carta a carta até completar as posições da tiragem
+
+**Revelação e interpretação**
+- Virada 3D do verso para a frente, individual ou "Revelar todas"
+- Por carta: nome, naipe/elemento/número, posição na tiragem e seu significado,
+  palavras-chave, Luz, Sombra e Conselho — em versão ereta e invertida
+- Síntese da tiragem gerada a partir da composição real das cartas (proporção de Arcanos
+  Maiores, naipe dominante, cartas invertidas, arco da primeira à última carta e tema)
+
+**Gestão e compartilhamento**
+- Diário de tiragens em `localStorage` (`/diario`)
+- Exportação em PNG (desenhado em `<canvas>`) e em PDF (via impressão, com estilo de print)
+- Link único de compartilhamento: a tiragem inteira é codificada em base64url na URL
+  (`/tiragem?t=...`), sem servidor
+- Dicionário pesquisável dos 78 arcanos (`/arcanos`)
+
+## Estrutura
+
+```
+app/            rotas (home, /diario, /arcanos, /tiragem)
+components/     mesa, carta com flip, painel de leitura, diário, dicionário
+lib/majors.js   os 22 Arcanos Maiores (textos autorais)
+lib/minors.js   naipes, valores e a essência das 56 cartas menores
+lib/deck.js     montagem e indexação do baralho de 78 cartas
+lib/spreads.js  métodos de tiragem e o significado de cada posição
+lib/random.js   Fisher-Yates + corte com aleatoriedade criptográfica
+lib/synthesis.js  gerador da síntese da leitura
+lib/share.js    codificação/decodificação da tiragem na URL
+lib/storage.js  diário em localStorage
+lib/exportImage.js  render da tiragem em PNG
+```
+
+## Rodando
+
+```bash
+npm install
+npm run dev     # http://localhost:3000
+npm run build && npm start
+```
+
+## Assets visuais
+
+As lâminas são renderizadas de forma tipográfica/vetorial em `components/CardArt.jsx`
+(sem dependência de imagens externas). Para usar ilustrações próprias, basta trocar esse
+componente por `<Image>` apontando para os WebP correspondentes ao `card.id`.
+
+## Escopo por fase
+
+- **Fase 1 (MVP)** — completa: 78 cartas, tiragens de 1 e 3 cartas, conteúdo dos arcanos, flip.
+- **Fase 2** — completa: Cruz Céltica, tiragem livre, cartas invertidas, diário em
+  `localStorage`, exportação PNG/PDF e link compartilhável.
+- **Fase 3** — pendente: autenticação, histórico na nuvem (PostgreSQL/Supabase) e síntese
+  assistida por IA. A síntese atual é determinística, gerada da própria composição da tiragem.
