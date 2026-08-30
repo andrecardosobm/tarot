@@ -11,7 +11,7 @@ import { readingToPng, downloadDataUrl } from '../lib/exportImage';
 import { saveReading } from '../lib/storage';
 import { absoluteUrl } from '../lib/paths';
 
-// O SDK da Anthropic só é baixado quando a leitura chega ao painel de IA.
+// O SDK do Google Gen AI só é baixado quando a leitura chega ao painel de IA.
 const AiReading = dynamic(() => import('./AiReading'), { ssr: false });
 
 /** Painel de revelação, interpretação e síntese de uma tiragem. */
