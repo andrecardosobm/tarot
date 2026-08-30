@@ -10,6 +10,7 @@ export default function SiteHeader() {
         <Link href="/" className="hover:text-white">Nova tiragem</Link>
         <Link href="/diario" className="hover:text-white">Diário</Link>
         <Link href="/arcanos" className="hover:text-white">Arcanos</Link>
+        <Link href="/ajustes" className="hover:text-white">Ajustes</Link>
       </nav>
     </header>
   );
