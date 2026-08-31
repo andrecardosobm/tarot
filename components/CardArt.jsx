@@ -5,10 +5,31 @@ const SUIT_STYLE = {
   pentacles: { glyph: '🪙', ring: 'from-emerald-300/40 to-yellow-600/30', accent: 'text-emerald-200' },
 };
 
+import { CARD_IMAGES } from '../lib/cardImages';
+import { BASE_PATH } from '../lib/paths';
+
 const MAJOR_GLYPH = ['🌀','✨','🌙','🌺','🏛️','🕯️','💞','🐎','🦁','🏮','☸️','⚖️','🙃','🦋','🏺','⛓️','🗼','⭐','🌕','☀️','📯','🌍'];
 
-/** Ilustração vetorial/tipográfica da lâmina (substituível por WebP autoral). */
+/**
+ * Ilustração da lâmina: usa o WebP de public/cards quando existe (ver
+ * scripts/import-cards.mjs) e cai na arte tipográfica quando não existe.
+ */
 export function CardArt({ card, size = 'md' }) {
+  if (CARD_IMAGES.has(card.id)) {
+    return (
+      <img
+        className="card-art h-full w-full object-cover"
+        src={`${BASE_PATH}/cards/${card.id}.webp`}
+        alt={card.name}
+        loading="lazy"
+        draggable={false}
+      />
+    );
+  }
+  return <TypographicArt card={card} size={size} />;
+}
+
+function TypographicArt({ card, size }) {
   const style = card.suit ? SUIT_STYLE[card.suit] : null;
   const glyph = card.suit ? style.glyph : MAJOR_GLYPH[card.number] || '✦';
   const ring = card.suit ? style.ring : 'from-violet-400/40 to-fuchsia-700/30';
