@@ -112,9 +112,27 @@ funcionando no Pages.
 
 ## Assets visuais
 
-As lâminas são renderizadas de forma tipográfica/vetorial em `components/CardArt.jsx`
-(sem dependência de imagens externas). Para usar ilustrações próprias, basta trocar esse
-componente por `<Image>` apontando para os WebP correspondentes ao `card.id`.
+Por padrão as lâminas são renderizadas de forma tipográfica/vetorial em
+`components/CardArt.jsx`, sem depender de imagens externas.
+
+Para usar ilustrações de verdade, coloque os arquivos em uma pasta e rode:
+
+```bash
+node scripts/import-cards.mjs <pasta-com-as-imagens>
+```
+
+O script identifica a carta pelo nome do arquivo (reconhece os esquemas mais comuns dos
+baralhos Rider-Waite-Smith em domínio público — `ar00`, `waac`, `cups-05`,
+`ace_of_swords`, `rei-de-ouros` …), converte para WebP de 500px e regenera o manifesto
+`lib/cardImages.js`. Arquivos não reconhecidos são listados no fim, em vez de adivinhados.
+
+Cada carta é independente: quem tem imagem usa a imagem, quem não tem continua com a arte
+tipográfica — dá para importar o baralho aos poucos.
+
+**Sobre direitos:** o baralho Rider-Waite-Smith de 1909, ilustrado por Pamela Colman Smith,
+está em domínio público nos EUA (publicação anterior a 1929) e nos países de "vida + 70
+anos" desde 2022 (Smith morreu em 1951). Ao importar digitalizações de terceiros, confira os
+termos de uso do site de origem e credite a fonte.
 
 ## Escopo por fase
 
