@@ -2,15 +2,24 @@
 
 import { useMemo, useState } from 'react';
 import DeckTable from './DeckTable';
+import ManualDraw from './ManualDraw';
 import ReadingView from './ReadingView';
 import { DECK } from '../lib/deck';
 import { SPREADS, getSpread, positionsFor, THEMES } from '../lib/spreads';
 import { shuffle, cut, coinFlip } from '../lib/random';
 
-const STEP = { SETUP: 'setup', TABLE: 'table', READING: 'reading' };
+const STEP = { SETUP: 'setup', TABLE: 'table', MANUAL: 'manual', READING: 'reading' };
+
+// mesa: o site embaralha e a pessoa puxa as cartas na tela.
+// manual: a pessoa tirou as cartas no baralho físico e só registra quais foram.
+const MODOS = [
+  { id: 'mesa', label: 'Puxar na mesa virtual', hint: 'o site embaralha as 78 cartas e você escolhe' },
+  { id: 'manual', label: 'Já tirei minhas cartas', hint: 'registre as cartas do seu baralho físico' },
+];
 
 export default function ReadingFlow() {
   const [step, setStep] = useState(STEP.SETUP);
+  const [mode, setMode] = useState('mesa');
   const [spreadId, setSpreadId] = useState('three-time');
   const [freeCount, setFreeCount] = useState(5);
   const [question, setQuestion] = useState('');
@@ -34,6 +43,12 @@ export default function ReadingFlow() {
   };
 
   const start = () => {
+    if (mode === 'manual') {
+      // Uma vaga por posição, preenchida na ordem que a pessoa quiser.
+      setPicked(Array.from({ length: count }, () => null));
+      setStep(STEP.MANUAL);
+      return;
+    }
     setDeck(cut(shuffle(DECK)));
     setPicked([]);
     setStep(STEP.TABLE);
@@ -51,7 +66,8 @@ export default function ReadingFlow() {
       spreadId,
       question: question.trim(),
       theme,
-      draw: picked,
+      source: mode,
+      draw: picked.filter(Boolean),
     });
     setStep(STEP.READING);
   };
@@ -64,6 +80,40 @@ export default function ReadingFlow() {
 
   if (step === STEP.READING && reading) {
     return <ReadingView reading={reading} onRestart={restart} />;
+  }
+
+  if (step === STEP.MANUAL) {
+    const faltam = picked.filter((p) => !p?.cardId).length;
+    return (
+      <section className="space-y-6">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-gold/80">{spread.name}</p>
+            <h2 className="font-display text-2xl">Registre as cartas que você tirou</h2>
+            <p className="mt-1 text-sm text-white/60">
+              Informe a carta de cada posição, na ordem em que saíram, e marque as que vieram invertidas.
+            </p>
+            {question && <p className="mt-1 text-sm text-white/60">“{question}”</p>}
+          </div>
+          <button type="button" onClick={restart} className="rounded-full border border-white/20 px-4 py-2 text-sm hover:bg-white/10">
+            Voltar
+          </button>
+        </div>
+
+        <ManualDraw positions={positions} picked={picked} onChange={setPicked} />
+
+        <button
+          type="button"
+          onClick={openReading}
+          disabled={faltam > 0}
+          className="w-full rounded-full bg-gold/90 px-6 py-3 font-medium text-ink hover:bg-gold disabled:opacity-40"
+        >
+          {faltam > 0
+            ? `Faltam ${faltam} ${faltam === 1 ? 'carta' : 'cartas'}`
+            : 'Abrir a leitura'}
+        </button>
+      </section>
+    );
   }
 
   if (step === STEP.TABLE) {
@@ -162,6 +212,25 @@ export default function ReadingFlow() {
       </div>
 
       <div className="space-y-3">
+        <p className="text-sm text-white/70">Como você vai tirar as cartas</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {MODOS.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              onClick={() => setMode(m.id)}
+              className={`rounded-2xl border p-4 text-left transition ${
+                mode === m.id ? 'border-gold/70 bg-gold/[0.08]' : 'border-white/10 bg-white/[0.03] hover:border-white/25'
+              }`}
+            >
+              <span className="block font-display text-lg">{m.label}</span>
+              <span className="mt-1 block text-sm text-white/60">{m.hint}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-3">
         <p className="text-sm text-white/70">Método de tiragem</p>
         <div className="grid gap-3 sm:grid-cols-2">
           {SPREADS.map((s) => (
@@ -214,7 +283,7 @@ export default function ReadingFlow() {
         onClick={start}
         className="w-full rounded-full bg-gold/90 px-6 py-3 font-medium text-ink hover:bg-gold"
       >
-        Embaralhar e ir para a mesa
+        {mode === 'manual' ? 'Registrar minhas cartas' : 'Embaralhar e ir para a mesa'}
       </button>
     </section>
   );
