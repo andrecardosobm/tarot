@@ -25,7 +25,7 @@ export default function ReadingView({ reading, onRestart, readOnly = false }) {
 
   const allRevealed = revealed.every(Boolean);
   const synthesis = useMemo(
-    () => synthesize(reading.draw, { question: reading.question, theme: reading.theme }),
+    () => synthesize(reading.draw, { question: reading.question, theme: reading.theme, source: reading.source }),
     [reading]
   );
 

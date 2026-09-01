@@ -21,6 +21,12 @@ embaralha a mesa e puxa manualmente as cartas.
   Cruz Céltica (10) e Tiragem Livre (1 a 10 cartas)
 - Toggle de cartas invertidas (a inversão é sorteada no momento em que a carta é puxada)
 
+**Duas formas de tirar**
+- **Mesa virtual**: o site embaralha as 78 cartas e você puxa na tela
+- **Já tirei minhas cartas**: você tirou no seu baralho físico e só registra quais saíram,
+  posição a posição, marcando as invertidas — a leitura, a síntese, a IA e o diário
+  funcionam igual
+
 **Mesa virtual**
 - As 78 cartas em grade rolável, viradas para baixo
 - Embaralhamento Fisher-Yates com `crypto.getRandomValues` (com rejeição de módulo para
