@@ -43,7 +43,12 @@ embaralha a mesa e puxa manualmente as cartas.
 **Leitura por IA (opcional)**
 - Interpretação da tiragem pelo Gemini (SDK oficial `@google/genai`), em streaming, lendo as
   cartas em conjunto com a pergunta e as posições; modelo selecionável em Ajustes
-  (`gemini-flash-latest` por padrão)
+- O prompt segue um funil de raciocínio em cinco etapas — contextualização da pergunta e do
+  método, leitura de cada carta na posição em que caiu, dinâmica relacional do conjunto
+  (elementos, números repetidos, fio condutor), tradução psicológica em vez de previsão
+  determinista, e uma síntese acionável que fecha com uma pergunta reflexiva
+- A composição da mesa (elementos, números repetidos, proporção de Arcanos Maiores) é contada
+  em código e entregue pronta ao modelo, para ele não errar a aritmética nem inventar padrão
 - O prompt entrega ao modelo os dados canônicos de cada carta (posição, orientação, luz,
   sombra, conselho), para a leitura ficar ancorada no baralho e não em invenção livre
 - Três tons de leitura e limites explícitos no system prompt (sem diagnóstico médico,
